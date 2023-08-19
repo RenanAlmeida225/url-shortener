@@ -15,14 +15,14 @@ public class Url {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    private String oldUrl;
+    private String longUrl;
     private String shortUrl;
     @Temporal(TemporalType.TIMESTAMP)
     @CreatedDate
     private LocalDateTime createAt;
 
-    public Url(String oldUrl, String shortUrl) {
-        this.oldUrl = oldUrl;
+    public Url(String longUrl, String shortUrl) {
+        this.longUrl = longUrl;
         this.shortUrl = shortUrl;
         this.createAt = LocalDateTime.now();
     }
