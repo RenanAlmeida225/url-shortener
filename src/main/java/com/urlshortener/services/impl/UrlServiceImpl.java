@@ -20,8 +20,7 @@ public class UrlServiceImpl implements UrlService {
     @Override
     public String saveUrl(String longUrl) {
         String shortUrl = randomCharacters.generate(5);
-        this.urlRepository.findByShortUrl(shortUrl)
-                .orElseThrow(() -> new RuntimeException("short url exists"));
+        if (this.urlRepository.findByShortUrl(shortUrl).isPresent()) throw new RuntimeException("short url exists");
         Url url = new Url(longUrl, shortUrl);
         this.urlRepository.save(url);
         return this.urlDomain + shortUrl;
