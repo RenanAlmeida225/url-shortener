@@ -61,7 +61,6 @@ class UrlServiceImplTest {
 
     @Test
     void findUrl_ShouldThrowIfUrlNotFound() {
-        String longUrl = "https://www.originalUrl.com/this-is-an-very-long-url";
         String shortUrl = "fkt8y";
         when(this.urlRepository.findByShortUrl(shortUrl)).thenReturn(Optional.empty());
 
