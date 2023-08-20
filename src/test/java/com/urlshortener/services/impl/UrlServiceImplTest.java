@@ -58,4 +58,28 @@ class UrlServiceImplTest {
         verify(this.urlRepository, times(1)).findByShortUrl(any());
         verify(this.urlRepository, times(1)).save(any());
     }
+
+    @Test
+    void findUrl_ShouldThrowIfUrlNotFound() {
+        String longUrl = "https://www.originalUrl.com/this-is-an-very-long-url";
+        String shortUrl = "fkt8y";
+        when(this.urlRepository.findByShortUrl(shortUrl)).thenReturn(Optional.empty());
+
+        RuntimeException thrown = assertThrows(RuntimeException.class, () -> this.urlService.findUrl(shortUrl));
+        assertEquals("url not found", thrown.getMessage());
+        verify(this.urlRepository, times(1)).findByShortUrl(any());
+    }
+
+    @Test
+    void findUrl_ShouldReturnTheOriginalUrl() {
+        String longUrl = "https://www.originalUrl.com/this-is-an-very-long-url";
+        String shortUrl = "fkt8y";
+        Url url = new Url(longUrl, shortUrl);
+        when(this.urlRepository.findByShortUrl(shortUrl)).thenReturn(Optional.of(url));
+
+        String originalUrl = this.urlService.findUrl(shortUrl);
+
+        assertEquals(longUrl, originalUrl);
+        verify(this.urlRepository, times(1)).findByShortUrl(any());
+    }
 }
