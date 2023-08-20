@@ -1,9 +1,9 @@
 package com.urlshortener.services;
 
-import com.urlshortener.entities.Statistic;
+import com.urlshortener.entities.Url;
 
 public interface StatisticService {
-    void save(Statistic statistic);
+    void save(Url url);
 
     int getAmountOfAccess(String shortUrl);
 }

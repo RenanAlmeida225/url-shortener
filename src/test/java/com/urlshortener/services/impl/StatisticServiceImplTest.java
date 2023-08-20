@@ -34,9 +34,8 @@ class StatisticServiceImplTest {
         String longUrl = "https://www.originalUrl.com/this-is-an-very-long-url";
         String shortUrl = "fkt8y";
         Url url = new Url(longUrl, shortUrl);
-        Statistic statistic = new Statistic(url);
 
-        this.statisticService.save(statistic);
+        this.statisticService.save(url);
 
         verify(this.statisticRepository, times(1)).save(any());
     }

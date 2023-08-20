@@ -16,7 +16,8 @@ public class StatisticServiceImpl implements StatisticService {
     private final UrlRepository urlRepository;
 
     @Override
-    public void save(Statistic statistic) {
+    public void save(Url url) {
+        Statistic statistic = new Statistic(url);
         this.statisticRepository.save(statistic);
     }
 
