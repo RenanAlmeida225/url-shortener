@@ -2,6 +2,7 @@ package com.urlshortener.services.impl;
 
 import com.urlshortener.Repositories.UrlRepository;
 import com.urlshortener.entities.Url;
+import com.urlshortener.services.StatisticService;
 import com.urlshortener.services.UrlService;
 import com.urlshortener.utils.RandomCharacters;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ public class UrlServiceImpl implements UrlService {
 
     private final UrlRepository urlRepository;
     private final RandomCharacters randomCharacters;
+    private final StatisticService statisticService;
     @Value("${url.domain}")
     private String urlDomain;
 
@@ -23,6 +25,7 @@ public class UrlServiceImpl implements UrlService {
         if (this.urlRepository.findByShortUrl(shortUrl).isPresent()) throw new RuntimeException("short url exists");
         Url url = new Url(longUrl, shortUrl);
         this.urlRepository.save(url);
+        this.statisticService.save(url);
         return this.urlDomain + shortUrl;
     }
 

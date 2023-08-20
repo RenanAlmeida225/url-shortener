@@ -2,6 +2,7 @@ package com.urlshortener.services.impl;
 
 import com.urlshortener.Repositories.UrlRepository;
 import com.urlshortener.entities.Url;
+import com.urlshortener.services.StatisticService;
 import com.urlshortener.utils.RandomCharacters;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,8 @@ class UrlServiceImplTest {
     private UrlRepository urlRepository;
     @Mock
     private RandomCharacters randomCharacters;
+    @Mock
+    private StatisticService statisticService;
 
     @BeforeEach
     void setup() {
@@ -33,16 +36,17 @@ class UrlServiceImplTest {
     }
 
     @Test
-    void saveUrl_ShouldThrowAnException() {
+    void saveUrl_ShouldThrowAnExceptionIfShortUrlExists() {
         String longUrl = "https://www.originalUrl.com/this-is-an-very-long-url";
         String shortUrl = "fkt8y";
         Url url = new Url(longUrl, shortUrl);
         when(this.randomCharacters.generate(5)).thenReturn(shortUrl);
         when(this.urlRepository.findByShortUrl(shortUrl)).thenReturn(Optional.of(url));
 
+        verify(this.urlRepository, never()).save(any());
+        verifyNoInteractions(this.statisticService);
         RuntimeException thrown = assertThrows(RuntimeException.class, () -> this.urlService.saveUrl(longUrl));
         assertEquals("short url exists", thrown.getMessage());
-        verify(this.urlRepository, never()).save(any());
     }
 
     @Test
@@ -54,9 +58,11 @@ class UrlServiceImplTest {
         when(this.urlRepository.findByShortUrl(shortUrl)).thenReturn(Optional.empty());
 
         String saved = this.urlService.saveUrl(longUrl);
-        assertEquals(fullShortUrl, saved);
+
         verify(this.urlRepository, times(1)).findByShortUrl(any());
         verify(this.urlRepository, times(1)).save(any());
+        verify(this.statisticService, times(1)).save(any());
+        assertEquals(fullShortUrl, saved);
     }
 
     @Test
