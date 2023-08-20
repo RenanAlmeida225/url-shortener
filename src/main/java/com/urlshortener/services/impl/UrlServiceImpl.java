@@ -28,6 +28,7 @@ public class UrlServiceImpl implements UrlService {
 
     @Override
     public String findUrl(String shortUrl) {
-        return null;
+        Url url = this.urlRepository.findByShortUrl(shortUrl).orElseThrow(() -> new RuntimeException("url not found"));
+        return url.getLongUrl();
     }
 }
