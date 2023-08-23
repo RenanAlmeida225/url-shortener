@@ -1,24 +1,31 @@
 package com.urlshortener.controllers;
 
+import com.urlshortener.dtos.SaveUrlDto;
 import com.urlshortener.services.UrlService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("url")
+@RequestMapping
 public class UrlController {
 
     private final UrlService urlService;
 
-    @PostMapping
-    public ResponseEntity<String> save(@RequestBody String longUrl) {
-        String shortUrl = this.urlService.saveUrl(longUrl);
+    @PostMapping("url")
+    public ResponseEntity<String> save(@RequestBody SaveUrlDto data) {
+        String shortUrl = this.urlService.saveUrl(data.longUrl());
         return ResponseEntity.status(HttpStatus.CREATED).body(shortUrl);
+    }
+
+    @GetMapping("{shortUrl}")
+    public RedirectView redirect(@PathVariable String shortUrl) {
+        String originalUrl = this.urlService.findUrl(shortUrl);
+        RedirectView redirectView = new RedirectView();
+        redirectView.setUrl(originalUrl);
+        return redirectView;
     }
 }
