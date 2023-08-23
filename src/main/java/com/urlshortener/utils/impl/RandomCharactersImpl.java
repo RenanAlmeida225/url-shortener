@@ -9,15 +9,16 @@ import java.util.Random;
 public class RandomCharactersImpl implements RandomCharacters {
 
     private static final String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    private String randomString = "";
 
     @Override
     public String generate(int size) {
-        if(size==0) return this.randomString;
-        Random random = new Random();
-        int randomNumber = random.nextInt(characters.length());
-        String randomCharacter = String.valueOf(characters.charAt(randomNumber));
-        this.randomString += randomCharacter;
-        return generate(size-1);
+        StringBuilder randomString = new StringBuilder();
+        for (int i = 0; i < size; i++) {
+            Random random = new Random();
+            int randomNumber = random.nextInt(characters.length());
+            String randomCharacter = String.valueOf(characters.charAt(randomNumber));
+            randomString.append(randomCharacter);
+        }
+        return randomString.toString();
     }
 }
