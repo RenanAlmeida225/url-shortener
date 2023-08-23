@@ -1,4 +1,6 @@
 package com.urlshortener.dtos;
 
-public record SaveUrlDto(String longUrl) {
+import jakarta.validation.constraints.NotBlank;
+
+public record SaveUrlDto(@NotBlank String longUrl) {
 }
