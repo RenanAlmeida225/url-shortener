@@ -58,7 +58,6 @@ class UrlControllerTest {
 
     @Test
     void redirect_shouldThrowIfShortUrlNotFound() {
-        String longUrl = "https://www.originalUrl.com/this-is-an-very-long-url";
         String shortUrl = "fkt8y";
         when(this.urlService.findUrl(shortUrl)).thenThrow(new RuntimeException("url not found"));
 
