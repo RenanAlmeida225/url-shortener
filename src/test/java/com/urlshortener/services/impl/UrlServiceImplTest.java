@@ -36,28 +36,30 @@ class UrlServiceImplTest {
     }
 
     @Test
-    void saveUrl_ShouldThrowAnExceptionIfShortUrlExists() {
+    void generateUrl_ShouldThrowAnExceptionIfShortUrlExists() {
         String longUrl = "https://www.originalUrl.com/this-is-an-very-long-url";
         String shortUrl = "fkt8y";
-        Url url = new Url(longUrl, shortUrl);
+        int limitDays = 5;
+        Url url = new Url(longUrl, shortUrl, limitDays);
         when(this.randomCharacters.generate(5)).thenReturn(shortUrl);
         when(this.urlRepository.findByShortUrl(shortUrl)).thenReturn(Optional.of(url));
 
         verify(this.urlRepository, never()).save(any());
         verifyNoInteractions(this.statisticService);
-        RuntimeException thrown = assertThrows(RuntimeException.class, () -> this.urlService.saveUrl(longUrl));
+        RuntimeException thrown = assertThrows(RuntimeException.class, () -> this.urlService.generateUrl(longUrl, limitDays));
         assertEquals("short url exists", thrown.getMessage());
     }
 
     @Test
-    void saveUrl_ShouldSaveUrlAndReturnShortUrl() {
+    void generateUrl_ShouldSaveUrlAndReturnShortUrl() {
         String longUrl = "https://www.originalUrl.com/this-is-an-very-long-url";
         String shortUrl = "fkt8y";
+        int limitDays = 5;
         String fullShortUrl = this.urlDomain + shortUrl;
         when(this.randomCharacters.generate(5)).thenReturn(shortUrl);
         when(this.urlRepository.findByShortUrl(shortUrl)).thenReturn(Optional.empty());
 
-        String saved = this.urlService.saveUrl(longUrl);
+        String saved = this.urlService.generateUrl(longUrl, limitDays);
 
         verify(this.urlRepository, times(1)).findByShortUrl(any());
         verify(this.urlRepository, times(1)).save(any());
@@ -79,7 +81,8 @@ class UrlServiceImplTest {
     void findUrl_ShouldReturnTheOriginalUrl() {
         String longUrl = "https://www.originalUrl.com/this-is-an-very-long-url";
         String shortUrl = "fkt8y";
-        Url url = new Url(longUrl, shortUrl);
+        int limitDays = 5;
+        Url url = new Url(longUrl, shortUrl, limitDays);
         when(this.urlRepository.findByShortUrl(shortUrl)).thenReturn(Optional.of(url));
 
         String originalUrl = this.urlService.findUrl(shortUrl);

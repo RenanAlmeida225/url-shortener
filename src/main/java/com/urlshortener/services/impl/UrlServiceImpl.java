@@ -5,11 +5,9 @@ import com.urlshortener.entities.Url;
 import com.urlshortener.services.StatisticService;
 import com.urlshortener.services.UrlService;
 import com.urlshortener.utils.RandomCharacters;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-@RequiredArgsConstructor
 @Service
 public class UrlServiceImpl implements UrlService {
 
@@ -19,11 +17,18 @@ public class UrlServiceImpl implements UrlService {
     @Value("${url.domain}")
     private String urlDomain;
 
+    public UrlServiceImpl(UrlRepository urlRepository, RandomCharacters randomCharacters, StatisticService statisticService) {
+        this.urlRepository = urlRepository;
+        this.randomCharacters = randomCharacters;
+        this.statisticService = statisticService;
+    }
+
     @Override
-    public String saveUrl(String longUrl) {
+    public String generateUrl(String longUrl, int limitDays) {
         String shortUrl = randomCharacters.generate(5);
-        if (this.urlRepository.findByShortUrl(shortUrl).isPresent()) throw new RuntimeException("short url exists");
-        Url url = new Url(longUrl, shortUrl);
+        if (this.urlRepository.findByShortUrl(shortUrl).isPresent())
+            throw new RuntimeException("short url exists");
+        Url url = new Url(longUrl, shortUrl, limitDays);
         this.urlRepository.save(url);
         this.statisticService.save(url);
         return this.urlDomain + shortUrl;

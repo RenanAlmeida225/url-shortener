@@ -33,7 +33,8 @@ class StatisticServiceImplTest {
     void save_ShouldSaveStatistic() {
         String longUrl = "https://www.originalUrl.com/this-is-an-very-long-url";
         String shortUrl = "fkt8y";
-        Url url = new Url(longUrl, shortUrl);
+        int limitDays = 15;
+        Url url = new Url(longUrl, shortUrl, limitDays);
 
         this.statisticService.save(url);
 
@@ -54,7 +55,9 @@ class StatisticServiceImplTest {
     void getAmountOfAccess_ShouldThrowIfStatisticNotFound() {
         String longUrl = "https://www.originalUrl.com/this-is-an-very-long-url";
         String shortUrl = "fkt8y";
-        Url url = new Url(longUrl, shortUrl);
+        int limitDays = 15;
+        Url url = new Url(longUrl, shortUrl, limitDays);
+
         when(this.urlRepository.findByShortUrl(shortUrl)).thenReturn(Optional.of(url));
         when(this.statisticRepository.findByUrl(url)).thenReturn(Optional.empty());
         RuntimeException thrown = assertThrows(RuntimeException.class, () -> this.statisticService.getAmountOfAccess(shortUrl));
@@ -67,7 +70,8 @@ class StatisticServiceImplTest {
         String longUrl = "https://www.originalUrl.com/this-is-an-very-long-url";
         String shortUrl = "fkt8y";
         int amountOfAccess = 10;
-        Url url = new Url(longUrl, shortUrl);
+        int limitDays = 15;
+        Url url = new Url(longUrl, shortUrl, limitDays);
         Statistic statistic = new Statistic(url);
         statistic.setAmountOfAccess(amountOfAccess);
         when(this.urlRepository.findByShortUrl(shortUrl)).thenReturn(Optional.of(url));

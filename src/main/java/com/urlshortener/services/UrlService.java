@@ -1,7 +1,7 @@
 package com.urlshortener.services;
 
 public interface UrlService {
-    String saveUrl(String longUrl);
+    String generateUrl(String longUrl, int limitDays);
 
     String findUrl(String shortUrl);
 }
