@@ -20,9 +20,11 @@ public class Url {
     @Temporal(TemporalType.TIMESTAMP)
     @CreatedDate
     private LocalDateTime createAt;
-    private int limitDate;
+    @Temporal(TemporalType.TIMESTAMP)
+    @CreatedDate
+    private LocalDateTime limitDate;
 
-    public Url(String longUrl, String shortUrl, int limitDate) {
+    public Url(String longUrl, String shortUrl, LocalDateTime limitDate) {
         this.longUrl = longUrl;
         this.shortUrl = shortUrl;
         this.createAt = LocalDateTime.now();
