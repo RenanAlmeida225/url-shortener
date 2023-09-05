@@ -2,6 +2,7 @@ package com.urlshortener.services.impl;
 
 import com.urlshortener.Repositories.UrlRepository;
 import com.urlshortener.entities.Url;
+import com.urlshortener.exceptions.EntityNotFoundException;
 import com.urlshortener.utils.RandomCharacters;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,7 +55,7 @@ class UrlServiceImplTest {
         String shortUrl = "fkt8y";
         when(this.urlRepository.findByShortUrl(shortUrl)).thenReturn(Optional.empty());
 
-        RuntimeException thrown = assertThrows(RuntimeException.class, () -> this.urlService.findUrl(shortUrl));
+        RuntimeException thrown = assertThrows(EntityNotFoundException.class, () -> this.urlService.findUrl(shortUrl));
         assertEquals("url not found", thrown.getMessage());
         verify(this.urlRepository, times(1)).findByShortUrl(any());
     }
