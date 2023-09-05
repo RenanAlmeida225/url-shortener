@@ -2,6 +2,7 @@ package com.urlshortener.services.impl;
 
 import com.urlshortener.Repositories.UrlRepository;
 import com.urlshortener.entities.Url;
+import com.urlshortener.exceptions.EntityNotFoundException;
 import com.urlshortener.services.UrlService;
 import com.urlshortener.utils.RandomCharacters;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,7 +34,7 @@ public class UrlServiceImpl implements UrlService {
 
     @Override
     public String findUrl(String shortUrl) {
-        Url url = this.urlRepository.findByShortUrl(shortUrl).orElseThrow(() -> new RuntimeException("url not found"));
+        Url url = this.urlRepository.findByShortUrl(shortUrl).orElseThrow(() -> new EntityNotFoundException("url not found"));
         return url.getLongUrl();
     }
 }
