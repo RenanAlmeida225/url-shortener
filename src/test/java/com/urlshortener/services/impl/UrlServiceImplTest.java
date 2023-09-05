@@ -8,9 +8,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,6 +22,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class UrlServiceImplTest {
     private final String urlDomain = "http://localhost:8080/";
+    MockedStatic<LocalDateTime> localDateTimeMocked;
     @InjectMocks
     private UrlServiceImpl urlService;
     @Mock
@@ -33,31 +36,15 @@ class UrlServiceImplTest {
     }
 
     @Test
-    void generateUrl_ShouldThrowAnExceptionIfShortUrlExists() {
-        String longUrl = "https://www.originalUrl.com/this-is-an-very-long-url";
-        String shortUrl = "fkt8y";
-        int limitDays = 5;
-        Url url = new Url(longUrl, shortUrl, limitDays);
-        when(this.randomCharacters.generate(5)).thenReturn(shortUrl);
-        when(this.urlRepository.findByShortUrl(shortUrl)).thenReturn(Optional.of(url));
-
-        verify(this.urlRepository, never()).save(any());
-        RuntimeException thrown = assertThrows(RuntimeException.class, () -> this.urlService.generateUrl(longUrl, limitDays));
-        assertEquals("short url exists", thrown.getMessage());
-    }
-
-    @Test
     void generateUrl_ShouldSaveUrlAndReturnShortUrl() {
         String longUrl = "https://www.originalUrl.com/this-is-an-very-long-url";
         String shortUrl = "fkt8y";
         int limitDays = 5;
         String fullShortUrl = this.urlDomain + shortUrl;
         when(this.randomCharacters.generate(5)).thenReturn(shortUrl);
-        when(this.urlRepository.findByShortUrl(shortUrl)).thenReturn(Optional.empty());
 
         String saved = this.urlService.generateUrl(longUrl, limitDays);
 
-        verify(this.urlRepository, times(1)).findByShortUrl(any());
         verify(this.urlRepository, times(1)).save(any());
         assertEquals(fullShortUrl, saved);
     }
@@ -76,10 +63,14 @@ class UrlServiceImplTest {
     void findUrl_ShouldReturnTheOriginalUrl() {
         String longUrl = "https://www.originalUrl.com/this-is-an-very-long-url";
         String shortUrl = "fkt8y";
-        int limitDays = 5;
-        Url url = new Url(longUrl, shortUrl, limitDays);
+        int limitDays = 15;
+        localDateTimeMocked = mockStatic(LocalDateTime.class, CALLS_REAL_METHODS);
+        LocalDateTime now = LocalDateTime.of(2023, 10, 1, 10, 0);
+        localDateTimeMocked.when(LocalDateTime::now).thenReturn(now);
+        LocalDateTime limitDate = now.plusDays(limitDays);
+        Url url = new Url(longUrl, shortUrl, limitDate);
         when(this.urlRepository.findByShortUrl(shortUrl)).thenReturn(Optional.of(url));
-
+        System.out.println("(url)==> " + url);
         String originalUrl = this.urlService.findUrl(shortUrl);
 
         assertEquals(longUrl, originalUrl);
