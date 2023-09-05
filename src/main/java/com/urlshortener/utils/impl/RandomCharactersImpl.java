@@ -8,7 +8,7 @@ import java.util.Random;
 @Component
 public class RandomCharactersImpl implements RandomCharacters {
 
-    private static final String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    private static final String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+*";
 
     @Override
     public String generate(int size) {
