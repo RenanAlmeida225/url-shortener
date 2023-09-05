@@ -7,6 +7,8 @@ import com.urlshortener.utils.RandomCharacters;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 public class UrlServiceImpl implements UrlService {
 
@@ -23,9 +25,8 @@ public class UrlServiceImpl implements UrlService {
     @Override
     public String generateUrl(String longUrl, int limitDays) {
         String shortUrl = randomCharacters.generate(5);
-        if (this.urlRepository.findByShortUrl(shortUrl).isPresent())
-            throw new RuntimeException("short url exists");
-        Url url = new Url(longUrl, shortUrl, limitDays);
+        LocalDateTime limitDate = LocalDateTime.now().plusDays(limitDays);
+        Url url = new Url(longUrl, shortUrl, limitDate);
         this.urlRepository.save(url);
         return this.urlDomain + shortUrl;
     }
