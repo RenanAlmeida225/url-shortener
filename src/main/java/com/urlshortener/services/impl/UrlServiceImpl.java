@@ -2,7 +2,6 @@ package com.urlshortener.services.impl;
 
 import com.urlshortener.Repositories.UrlRepository;
 import com.urlshortener.entities.Url;
-import com.urlshortener.services.StatisticService;
 import com.urlshortener.services.UrlService;
 import com.urlshortener.utils.RandomCharacters;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,14 +12,12 @@ public class UrlServiceImpl implements UrlService {
 
     private final UrlRepository urlRepository;
     private final RandomCharacters randomCharacters;
-    private final StatisticService statisticService;
     @Value("${url.domain}")
     private String urlDomain;
 
-    public UrlServiceImpl(UrlRepository urlRepository, RandomCharacters randomCharacters, StatisticService statisticService) {
+    public UrlServiceImpl(UrlRepository urlRepository, RandomCharacters randomCharacters) {
         this.urlRepository = urlRepository;
         this.randomCharacters = randomCharacters;
-        this.statisticService = statisticService;
     }
 
     @Override
@@ -30,7 +27,6 @@ public class UrlServiceImpl implements UrlService {
             throw new RuntimeException("short url exists");
         Url url = new Url(longUrl, shortUrl, limitDays);
         this.urlRepository.save(url);
-        this.statisticService.save(url);
         return this.urlDomain + shortUrl;
     }
 

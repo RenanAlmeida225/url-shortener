@@ -2,7 +2,6 @@ package com.urlshortener.services.impl;
 
 import com.urlshortener.Repositories.UrlRepository;
 import com.urlshortener.entities.Url;
-import com.urlshortener.services.StatisticService;
 import com.urlshortener.utils.RandomCharacters;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,8 +26,6 @@ class UrlServiceImplTest {
     private UrlRepository urlRepository;
     @Mock
     private RandomCharacters randomCharacters;
-    @Mock
-    private StatisticService statisticService;
 
     @BeforeEach
     void setup() {
@@ -45,7 +42,6 @@ class UrlServiceImplTest {
         when(this.urlRepository.findByShortUrl(shortUrl)).thenReturn(Optional.of(url));
 
         verify(this.urlRepository, never()).save(any());
-        verifyNoInteractions(this.statisticService);
         RuntimeException thrown = assertThrows(RuntimeException.class, () -> this.urlService.generateUrl(longUrl, limitDays));
         assertEquals("short url exists", thrown.getMessage());
     }
@@ -63,7 +59,6 @@ class UrlServiceImplTest {
 
         verify(this.urlRepository, times(1)).findByShortUrl(any());
         verify(this.urlRepository, times(1)).save(any());
-        verify(this.statisticService, times(1)).save(any());
         assertEquals(fullShortUrl, saved);
     }
 
