@@ -1,6 +1,7 @@
 package com.urlshortener.controllers;
 
 import com.urlshortener.dtos.SaveUrlDto;
+import com.urlshortener.dtos.UrlResponseDto;
 import com.urlshortener.services.UrlService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -19,8 +20,8 @@ public class UrlController {
     }
 
     @PostMapping("url")
-    public ResponseEntity<String> save(@RequestBody @Valid SaveUrlDto data) {
-        String shortUrl = this.urlService.generateUrl(data.longUrl(), data.limitDays());
+    public ResponseEntity<UrlResponseDto> save(@RequestBody @Valid SaveUrlDto data) {
+        UrlResponseDto shortUrl = this.urlService.generateUrl(data.longUrl(), data.limitDays());
         return ResponseEntity.status(HttpStatus.CREATED).body(shortUrl);
     }
 
