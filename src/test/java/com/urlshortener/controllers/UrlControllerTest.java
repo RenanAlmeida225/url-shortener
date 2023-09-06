@@ -53,13 +53,19 @@ class UrlControllerTest {
         SaveUrlDto data = new SaveUrlDto(longUrl, limitDays);
         String shortUrl = "fkt8y";
         String fullUrlShort = this.urlDomain + shortUrl;
-        when(this.urlService.generateUrl(any(), anyInt())).thenReturn(fullUrlShort);
+        localDateTimeMocked = mockStatic(LocalDateTime.class, CALLS_REAL_METHODS);
+        LocalDateTime now = LocalDateTime.of(2023, 10, 1, 10, 0);
+        localDateTimeMocked.when(LocalDateTime::now).thenReturn(now);
+        LocalDateTime limitDate = now.plusDays(limitDays);
+        UrlResponseDto responseDto = new UrlResponseDto(fullUrlShort, limitDate);
+        when(this.urlService.generateUrl(any(), anyInt())).thenReturn(responseDto);
 
-        ResultMatcher resultMatcher = content().string(containsString(fullUrlShort));
+        ResultMatcher resultMatcher = content().json(mapper.writeValueAsString(responseDto));
         this.mockMvc.perform(post("/url")
                         .contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsBytes(data)))
                 .andExpect(status().isCreated())
-                .andExpect(resultMatcher);
+                .andExpect(resultMatcher)
+                .andReturn();
 
     }
 
