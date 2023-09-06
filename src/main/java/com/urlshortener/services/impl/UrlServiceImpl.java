@@ -1,6 +1,7 @@
 package com.urlshortener.services.impl;
 
 import com.urlshortener.Repositories.UrlRepository;
+import com.urlshortener.dtos.UrlResponseDto;
 import com.urlshortener.entities.Url;
 import com.urlshortener.exceptions.EntityNotFoundException;
 import com.urlshortener.services.UrlService;
@@ -24,12 +25,12 @@ public class UrlServiceImpl implements UrlService {
     }
 
     @Override
-    public String generateUrl(String longUrl, int limitDays) {
+    public UrlResponseDto generateUrl(String longUrl, int limitDays) {
         String shortUrl = randomCharacters.generate(5);
         LocalDateTime limitDate = LocalDateTime.now().plusDays(limitDays);
         Url url = new Url(longUrl, shortUrl, limitDate);
         this.urlRepository.save(url);
-        return this.urlDomain + shortUrl;
+        return new UrlResponseDto(this.urlDomain + shortUrl, limitDate);
     }
 
     @Override
