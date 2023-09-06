@@ -1,9 +1,11 @@
 package com.urlshortener.services.impl;
 
 import com.urlshortener.Repositories.UrlRepository;
+import com.urlshortener.dtos.UrlResponseDto;
 import com.urlshortener.entities.Url;
 import com.urlshortener.exceptions.EntityNotFoundException;
 import com.urlshortener.utils.RandomCharacters;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +26,7 @@ import static org.mockito.Mockito.*;
 class UrlServiceImplTest {
     private final String urlDomain = "http://localhost:8080/";
     MockedStatic<LocalDateTime> localDateTimeMocked;
+    private LocalDateTime now;
     @InjectMocks
     private UrlServiceImpl urlService;
     @Mock
@@ -34,6 +37,14 @@ class UrlServiceImplTest {
     @BeforeEach
     void setup() {
         ReflectionTestUtils.setField(urlService, "urlDomain", this.urlDomain);
+        localDateTimeMocked = mockStatic(LocalDateTime.class, CALLS_REAL_METHODS);
+        this.now = LocalDateTime.of(2023, 10, 1, 10, 0);
+        localDateTimeMocked.when(LocalDateTime::now).thenReturn(now);
+    }
+
+    @AfterEach
+    void reset() {
+        localDateTimeMocked.close();
     }
 
     @Test
