@@ -64,13 +64,16 @@ class UrlControllerTest {
     }
 
     @Test
-    void redirect_shouldThrowIfShortUrlNotFound() {
+    void redirect_shouldThrowIfShortUrlNotFound() throws Exception {
         String shortUrl = "fkt8y";
-        when(this.urlService.findUrl(shortUrl)).thenThrow(new RuntimeException("url not found"));
+        StandardException standardException = new StandardException(Instant.now(), 404, "entity not found", "url not found", "/" + shortUrl);
+        when(this.urlService.findUrl(shortUrl)).thenThrow(new EntityNotFoundException("url not found"));
 
-        assertThatThrownBy(
-                () -> mockMvc.perform(get("/{shortUrl}", shortUrl).contentType(MediaType.APPLICATION_JSON))
-        ).hasCauseInstanceOf(RuntimeException.class).hasMessageContaining("url not found");
+        ResultMatcher resultMatcher = content().json(mapper.writeValueAsString(standardException));
+        mockMvc.perform(get("/{shortUrl}", shortUrl).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(resultMatcher)
+                .andReturn();
     }
 
     @Test
