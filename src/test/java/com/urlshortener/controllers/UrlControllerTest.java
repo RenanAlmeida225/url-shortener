@@ -122,11 +122,11 @@ class UrlControllerTest {
     @Test
     void getOriginalUrl_ShouldThrowIfShortUrlNotExist() throws Exception {
         String shortUrl = "fkt8y";
-        StandardException standardException = new StandardException(Instant.now(), 404, "entity not found", "url not found", "/url/" + shortUrl);
+        StandardException standardException = new StandardException(Instant.now(), 404, "entity not found", "url not found", "/url");
         when(this.urlService.findUrl(shortUrl)).thenThrow(new EntityNotFoundException("url not found"));
 
         ResultMatcher resultMatcher = content().json(mapper.writeValueAsString(standardException));
-        mockMvc.perform(get("/url/{shortUrl}", shortUrl).contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/url").param("shortUrl", shortUrl))
                 .andExpect(status().isNotFound())
                 .andExpect(resultMatcher)
                 .andReturn();
@@ -143,7 +143,7 @@ class UrlControllerTest {
         when(this.urlService.findUrl(shortUrl)).thenReturn(responseDto);
 
         ResultMatcher resultMatcher = content().json(mapper.writeValueAsString(responseDto));
-        mockMvc.perform(get("/url/{shortUrl}", shortUrl).contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/url").param("shortUrl", shortUrl))
                 .andExpect(status().isOk())
                 .andExpect(resultMatcher)
                 .andReturn();
