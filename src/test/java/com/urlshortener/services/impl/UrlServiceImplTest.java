@@ -53,12 +53,14 @@ class UrlServiceImplTest {
         String shortUrl = "fkt8y";
         int limitDays = 5;
         String fullShortUrl = this.urlDomain + shortUrl;
+        LocalDateTime limitDate = this.now.plusDays(limitDays);
+        UrlResponseDto response = new UrlResponseDto(fullShortUrl, limitDate);
         when(this.randomCharacters.generate(5)).thenReturn(shortUrl);
 
-        String saved = this.urlService.generateUrl(longUrl, limitDays);
+        UrlResponseDto saved = this.urlService.generateUrl(longUrl, limitDays);
 
         verify(this.urlRepository, times(1)).save(any());
-        assertEquals(fullShortUrl, saved);
+        assertEquals(response, saved);
     }
 
     @Test
