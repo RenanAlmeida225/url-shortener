@@ -33,7 +33,7 @@ public class ExceptionHandlerControllerAdvice {
         StandardException standardException = new StandardException(
                 Instant.now(),
                 HttpStatus.NOT_FOUND.value(),
-                "method argument not valid",
+                "entity not found",
                 exception.getMessage(),
                 request.getRequestURI()
         );
