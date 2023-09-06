@@ -107,7 +107,6 @@ class UrlControllerTest {
         SaveUrlDto data = new SaveUrlDto(longUrl, limitDays);
         String shortUrl = "fkt8y";
         String fullUrlShort = this.urlDomain + shortUrl;
-
         LocalDateTime limitDate = now.plusDays(limitDays);
         UrlResponseDto responseDto = new UrlResponseDto(fullUrlShort, longUrl, limitDate);
         when(this.urlService.generateUrl(any(), anyInt())).thenReturn(responseDto);
@@ -118,7 +117,36 @@ class UrlControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(resultMatcher)
                 .andReturn();
+    }
 
+    @Test
+    void getOriginalUrl_ShouldThrowIfShortUrlNotExist() throws Exception {
+        String shortUrl = "fkt8y";
+        StandardException standardException = new StandardException(Instant.now(), 404, "entity not found", "url not found", "/url/" + shortUrl);
+        when(this.urlService.findUrl(shortUrl)).thenThrow(new EntityNotFoundException("url not found"));
+
+        ResultMatcher resultMatcher = content().json(mapper.writeValueAsString(standardException));
+        mockMvc.perform(get("/url/{shortUrl}", shortUrl).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(resultMatcher)
+                .andReturn();
+    }
+
+    @Test
+    void getOriginalUrl_ShouldReturnResponse() throws Exception {
+        String shortUrl = "fkt8y";
+        String longUrl = "https://www.originalUrl.com/this-is-an-very-long-url";
+        int limitDays = 15;
+        LocalDateTime limitDate = now.plusDays(limitDays);
+        String fullUrlShort = this.urlDomain + shortUrl;
+        UrlResponseDto responseDto = new UrlResponseDto(fullUrlShort, longUrl, limitDate);
+        when(this.urlService.findUrl(shortUrl)).thenReturn(responseDto);
+
+        ResultMatcher resultMatcher = content().json(mapper.writeValueAsString(responseDto));
+        mockMvc.perform(get("/url/{shortUrl}", shortUrl).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(resultMatcher)
+                .andReturn();
     }
 
     @Test
