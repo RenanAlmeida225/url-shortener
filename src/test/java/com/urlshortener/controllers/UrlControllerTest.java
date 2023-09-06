@@ -2,8 +2,14 @@ package com.urlshortener.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.urlshortener.dtos.SaveUrlDto;
+import com.urlshortener.dtos.UrlResponseDto;
+import com.urlshortener.exceptions.EntityNotFoundException;
+import com.urlshortener.exceptions.StandardException;
 import com.urlshortener.services.UrlService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -11,19 +17,22 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultMatcher;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.hamcrest.Matchers.containsString;
+import java.time.Instant;
+import java.time.LocalDateTime;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest
 class UrlControllerTest {
-
     private final String urlDomain = "http://localhost:8080/";
+    MockedStatic<LocalDateTime> localDateTimeMocked;
+    MockedStatic<Instant> instantMocked;
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -32,6 +41,30 @@ class UrlControllerTest {
 
     @MockBean
     private UrlService urlService;
+
+    @BeforeEach
+    void setup() {
+        instantMocked = mockStatic(Instant.class, CALLS_REAL_METHODS);
+        Instant now = Instant.parse("2023-10-01T10:00:00.00Z");
+        instantMocked.when(Instant::now).thenReturn(now);
+    }
+
+    @AfterEach
+    void reset() {
+        instantMocked.close();
+    }
+
+
+    @Test
+    void save_ShouldThrowIfLongUrlIsBlank() throws Exception {
+        SaveUrlDto data = new SaveUrlDto("", 10);
+        StandardException standardException = new StandardException(Instant.now(), 400, "method argument not valid", "[longUrl: 'must not be blank']", "/url");
+        ResultMatcher resultMatcher = content().json(mapper.writeValueAsString(standardException));
+        mockMvc.perform(post("/url").contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsBytes(data)))
+                .andExpect(status().isBadRequest())
+                .andExpect(resultMatcher)
+                .andReturn();
+    }
 
     @Test
     void save_ShouldThrowIfShortUrlExists() {
