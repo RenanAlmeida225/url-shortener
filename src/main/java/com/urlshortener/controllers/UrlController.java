@@ -25,8 +25,8 @@ public class UrlController {
         return ResponseEntity.status(HttpStatus.CREATED).body(shortUrl);
     }
 
-    @GetMapping("url/{shortUrl}")
-    public ResponseEntity<UrlResponseDto> getOriginalUrl(@PathVariable String shortUrl) {
+    @GetMapping("url")
+    public ResponseEntity<UrlResponseDto> getOriginalUrl(@RequestParam String shortUrl) {
         UrlResponseDto url = this.urlService.findUrl(shortUrl);
         return ResponseEntity.status(HttpStatus.OK).body(url);
     }
