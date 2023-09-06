@@ -42,16 +42,23 @@ class UrlControllerTest {
     @MockBean
     private UrlService urlService;
 
+    private LocalDateTime now;
+
     @BeforeEach
     void setup() {
         instantMocked = mockStatic(Instant.class, CALLS_REAL_METHODS);
         Instant now = Instant.parse("2023-10-01T10:00:00.00Z");
         instantMocked.when(Instant::now).thenReturn(now);
+
+        localDateTimeMocked = mockStatic(LocalDateTime.class, CALLS_REAL_METHODS);
+        this.now = LocalDateTime.of(2023, 10, 1, 10, 0);
+        localDateTimeMocked.when(LocalDateTime::now).thenReturn(this.now);
     }
 
     @AfterEach
     void reset() {
         instantMocked.close();
+        localDateTimeMocked.close();
     }
 
 
@@ -100,11 +107,9 @@ class UrlControllerTest {
         SaveUrlDto data = new SaveUrlDto(longUrl, limitDays);
         String shortUrl = "fkt8y";
         String fullUrlShort = this.urlDomain + shortUrl;
-        localDateTimeMocked = mockStatic(LocalDateTime.class, CALLS_REAL_METHODS);
-        LocalDateTime now = LocalDateTime.of(2023, 10, 1, 10, 0);
-        localDateTimeMocked.when(LocalDateTime::now).thenReturn(now);
+
         LocalDateTime limitDate = now.plusDays(limitDays);
-        UrlResponseDto responseDto = new UrlResponseDto(fullUrlShort, limitDate);
+        UrlResponseDto responseDto = new UrlResponseDto(fullUrlShort, longUrl, limitDate);
         when(this.urlService.generateUrl(any(), anyInt())).thenReturn(responseDto);
 
         ResultMatcher resultMatcher = content().json(mapper.writeValueAsString(responseDto));
@@ -133,7 +138,11 @@ class UrlControllerTest {
     void redirect_ShouldRedirectToLongUrl() throws Exception {
         String longUrl = "https://www.originalUrl.com/this-is-an-very-long-url";
         String shortUrl = "fkt8y";
-        when(this.urlService.findUrl(shortUrl)).thenReturn(longUrl);
+        int limitDays = 15;
+        String fullUrlShort = this.urlDomain + shortUrl;
+        LocalDateTime limitDate = now.plusDays(limitDays);
+        UrlResponseDto responseDto = new UrlResponseDto(fullUrlShort, longUrl, limitDate);
+        when(this.urlService.findUrl(shortUrl)).thenReturn(responseDto);
 
         this.mockMvc.perform(get("/{shortUrl}", shortUrl).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is3xxRedirection()).andExpect(redirectedUrl(longUrl));

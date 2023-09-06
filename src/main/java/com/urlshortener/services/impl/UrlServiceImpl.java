@@ -30,12 +30,12 @@ public class UrlServiceImpl implements UrlService {
         LocalDateTime limitDate = LocalDateTime.now().plusDays(limitDays);
         Url url = new Url(longUrl, shortUrl, limitDate);
         this.urlRepository.save(url);
-        return new UrlResponseDto(this.urlDomain + shortUrl, limitDate);
+        return new UrlResponseDto(this.urlDomain + shortUrl, longUrl, limitDate);
     }
 
     @Override
-    public String findUrl(String shortUrl) {
+    public UrlResponseDto findUrl(String shortUrl) {
         Url url = this.urlRepository.findByShortUrl(shortUrl).orElseThrow(() -> new EntityNotFoundException("url not found"));
-        return url.getLongUrl();
+        return new UrlResponseDto(this.urlDomain + shortUrl, url.getLongUrl(), url.getLimitDate());
     }
 }

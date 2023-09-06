@@ -25,11 +25,17 @@ public class UrlController {
         return ResponseEntity.status(HttpStatus.CREATED).body(shortUrl);
     }
 
+//    @GetMapping("url/{shortUrl}")
+//    public ResponseEntity<UrlResponseDto> getOriginalUrl(@PathVariable String shortUrl) {
+//
+//    }
+
+
     @GetMapping("{shortUrl}")
     public RedirectView redirect(@PathVariable String shortUrl) {
-        String originalUrl = this.urlService.findUrl(shortUrl);
+        UrlResponseDto responseDto = this.urlService.findUrl(shortUrl);
         RedirectView redirectView = new RedirectView();
-        redirectView.setUrl(originalUrl);
+        redirectView.setUrl(responseDto.longUrl());
         return redirectView;
     }
 }

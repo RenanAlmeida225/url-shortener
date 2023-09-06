@@ -54,7 +54,7 @@ class UrlServiceImplTest {
         int limitDays = 5;
         String fullShortUrl = this.urlDomain + shortUrl;
         LocalDateTime limitDate = this.now.plusDays(limitDays);
-        UrlResponseDto response = new UrlResponseDto(fullShortUrl, limitDate);
+        UrlResponseDto response = new UrlResponseDto(fullShortUrl, longUrl, limitDate);
         when(this.randomCharacters.generate(5)).thenReturn(shortUrl);
 
         UrlResponseDto saved = this.urlService.generateUrl(longUrl, limitDays);
@@ -78,12 +78,15 @@ class UrlServiceImplTest {
         String longUrl = "https://www.originalUrl.com/this-is-an-very-long-url";
         String shortUrl = "fkt8y";
         int limitDays = 15;
+        String fullShortUrl = this.urlDomain + shortUrl;
         LocalDateTime limitDate = this.now.plusDays(limitDays);
         Url url = new Url(longUrl, shortUrl, limitDate);
+        UrlResponseDto responseDto = new UrlResponseDto(fullShortUrl, longUrl, limitDate);
         when(this.urlRepository.findByShortUrl(shortUrl)).thenReturn(Optional.of(url));
-        String originalUrl = this.urlService.findUrl(shortUrl);
 
-        assertEquals(longUrl, originalUrl);
+        UrlResponseDto res = this.urlService.findUrl(shortUrl);
+
+        assertEquals(responseDto, res);
         verify(this.urlRepository, times(1)).findByShortUrl(any());
     }
 }
