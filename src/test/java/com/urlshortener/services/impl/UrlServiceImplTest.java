@@ -78,13 +78,9 @@ class UrlServiceImplTest {
         String longUrl = "https://www.originalUrl.com/this-is-an-very-long-url";
         String shortUrl = "fkt8y";
         int limitDays = 15;
-        localDateTimeMocked = mockStatic(LocalDateTime.class, CALLS_REAL_METHODS);
-        LocalDateTime now = LocalDateTime.of(2023, 10, 1, 10, 0);
-        localDateTimeMocked.when(LocalDateTime::now).thenReturn(now);
-        LocalDateTime limitDate = now.plusDays(limitDays);
+        LocalDateTime limitDate = this.now.plusDays(limitDays);
         Url url = new Url(longUrl, shortUrl, limitDate);
         when(this.urlRepository.findByShortUrl(shortUrl)).thenReturn(Optional.of(url));
-        System.out.println("(url)==> " + url);
         String originalUrl = this.urlService.findUrl(shortUrl);
 
         assertEquals(longUrl, originalUrl);
