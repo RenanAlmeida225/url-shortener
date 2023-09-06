@@ -67,17 +67,31 @@ class UrlControllerTest {
     }
 
     @Test
-    void save_ShouldThrowIfShortUrlExists() {
+    void save_ShouldThrowIfLimitDaysLessThan1() throws Exception {
         String longUrl = "https://www.originalUrl.com/this-is-an-very-long-url";
-        int limitDays = 15;
-        SaveUrlDto data = new SaveUrlDto(longUrl, limitDays);
-        when(this.urlService.generateUrl(longUrl, limitDays)).thenThrow(new RuntimeException("short url exists"));
+        SaveUrlDto data = new SaveUrlDto(longUrl, 0);
+        StandardException standardException = new StandardException(Instant.now(), 400, "method argument not valid", "[limitDays: 'must be greater than or equal to 1']", "/url");
 
-        assertThatThrownBy(
-                () -> mockMvc.perform(post("/url")
-                        .contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsBytes(data)))
-        ).hasCauseInstanceOf(RuntimeException.class).hasMessageContaining("short url exists");
+        ResultMatcher resultMatcher = content().json(mapper.writeValueAsString(standardException));
+        mockMvc.perform(post("/url").contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsBytes(data)))
+                .andExpect(status().isBadRequest())
+                .andExpect(resultMatcher)
+                .andReturn();
     }
+
+    @Test
+    void save_ShouldThrowIfLimitDaysGreaterThan30() throws Exception {
+        String longUrl = "https://www.originalUrl.com/this-is-an-very-long-url";
+        SaveUrlDto data = new SaveUrlDto(longUrl, 31);
+        StandardException standardException = new StandardException(Instant.now(), 400, "method argument not valid", "[limitDays: 'must be less than or equal to 30']", "/url");
+
+        ResultMatcher resultMatcher = content().json(mapper.writeValueAsString(standardException));
+        mockMvc.perform(post("/url").contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsBytes(data)))
+                .andExpect(status().isBadRequest())
+                .andExpect(resultMatcher)
+                .andReturn();
+    }
+
 
     @Test
     void save_ShouldSaveUrlAndReturnStatus201() throws Exception {
