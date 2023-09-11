@@ -3,6 +3,7 @@ package com.urlshortener.services.impl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -46,5 +47,16 @@ public class EmailServiceImplTest {
                 () -> emailService.sendEmail(fullShortUrl, message));
         assertEquals("fail on send email", thrown.getMessage());
         verify(this.mailSender, times(1)).send(any(SimpleMailMessage.class));
+    }
+
+    @Test
+    void testSendEmail_ShouldSendEmail() {
+        String fullShortUrl = "localhost:8080/sjdT5";
+        String message = "email is malicious";
+        doNothing().when(mailSender).send(any(SimpleMailMessage.class));
+
+        emailService.sendEmail(fullShortUrl, message);
+
+        verify(mailSender, times(1)).send(any(SimpleMailMessage.class));
     }
 }
