@@ -1,10 +1,18 @@
 package com.urlshortener.services.impl;
 
-import com.urlshortener.Repositories.UrlRepository;
-import com.urlshortener.dtos.UrlResponseDto;
-import com.urlshortener.entities.Url;
-import com.urlshortener.exceptions.EntityNotFoundException;
-import com.urlshortener.utils.RandomCharacters;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,12 +23,11 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import com.urlshortener.Repositories.UrlRepository;
+import com.urlshortener.dtos.UrlResponseDto;
+import com.urlshortener.entities.Url;
+import com.urlshortener.exceptions.EntityNotFoundException;
+import com.urlshortener.utils.RandomCharacters;
 
 @ExtendWith(MockitoExtension.class)
 class UrlServiceImplTest {
@@ -74,7 +81,7 @@ class UrlServiceImplTest {
     }
 
     @Test
-    void findUrl_ShouldReturnTheOriginalUrl() {
+    void findUrl_ShouldReturnTheOriginalUrlWithFullShortUrl() {
         String longUrl = "https://www.originalUrl.com/this-is-an-very-long-url";
         String shortUrl = "fkt8y";
         int limitDays = 15;
@@ -82,7 +89,24 @@ class UrlServiceImplTest {
         LocalDateTime limitDate = this.now.plusDays(limitDays);
         Url url = new Url(longUrl, shortUrl, limitDate);
         UrlResponseDto responseDto = new UrlResponseDto(fullShortUrl, longUrl, limitDate);
-        when(this.urlRepository.findByShortUrl(shortUrl)).thenReturn(Optional.of(url));
+        when(this.urlRepository.findByShortUrl(anyString())).thenReturn(Optional.of(url));
+
+        UrlResponseDto res = this.urlService.findUrl(fullShortUrl);
+
+        assertEquals(responseDto, res);
+        verify(this.urlRepository, times(1)).findByShortUrl(any());
+    }
+
+    @Test
+    void findUrl_ShouldReturnTheOriginalUrlWithShortUrl() {
+        String longUrl = "https://www.originalUrl.com/this-is-an-very-long-url";
+        String shortUrl = "fkt8y";
+        int limitDays = 15;
+        String fullShortUrl = this.urlDomain + shortUrl;
+        LocalDateTime limitDate = this.now.plusDays(limitDays);
+        Url url = new Url(longUrl, shortUrl, limitDate);
+        UrlResponseDto responseDto = new UrlResponseDto(fullShortUrl, longUrl, limitDate);
+        when(this.urlRepository.findByShortUrl(anyString())).thenReturn(Optional.of(url));
 
         UrlResponseDto res = this.urlService.findUrl(shortUrl);
 
