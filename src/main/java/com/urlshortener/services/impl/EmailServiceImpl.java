@@ -28,7 +28,7 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendEmail(String shortUrl, String message) {
-        this.urlService.findUrl(shortUrl.split(this.urlDomain)[1]);
+        this.urlService.findUrl(shortUrl);
         try {
             SimpleMailMessage email = new SimpleMailMessage();
             email.setTo(this.to);
