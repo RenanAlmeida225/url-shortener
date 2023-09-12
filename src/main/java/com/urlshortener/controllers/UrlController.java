@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.view.RedirectView;
 
+import com.urlshortener.dtos.ReportMessageDto;
 import com.urlshortener.dtos.SaveUrlDto;
 import com.urlshortener.dtos.UrlResponseDto;
+import com.urlshortener.services.EmailService;
 import com.urlshortener.services.UrlService;
 
 import jakarta.validation.Valid;
@@ -22,9 +24,11 @@ import jakarta.validation.Valid;
 public class UrlController {
 
     private final UrlService urlService;
+    private final EmailService emailService;
 
-    public UrlController(UrlService urlService) {
+    public UrlController(UrlService urlService, EmailService emailService) {
         this.urlService = urlService;
+        this.emailService = emailService;
     }
 
     @PostMapping("url")
@@ -37,6 +41,12 @@ public class UrlController {
     public ResponseEntity<UrlResponseDto> getOriginalUrl(@RequestParam String shortUrl) {
         UrlResponseDto url = this.urlService.findUrl(shortUrl);
         return ResponseEntity.status(HttpStatus.OK).body(url);
+    }
+
+    @PostMapping("url/report")
+    public ResponseEntity<String> report(@RequestBody @Valid ReportMessageDto data) {
+        this.emailService.sendEmail(data.shortUrl(), data.message());
+        return ResponseEntity.status(HttpStatus.OK).body("email sent");
     }
 
     @GetMapping("{shortUrl}")
