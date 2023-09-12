@@ -2,7 +2,10 @@ package com.urlshortener.controllers;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -26,9 +29,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultMatcher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.urlshortener.dtos.ReportMessageDto;
 import com.urlshortener.dtos.SaveUrlDto;
 import com.urlshortener.dtos.UrlResponseDto;
 import com.urlshortener.exceptions.EntityNotFoundException;
+import com.urlshortener.exceptions.FailedSendMailException;
 import com.urlshortener.exceptions.StandardException;
 import com.urlshortener.services.EmailService;
 import com.urlshortener.services.UrlService;
@@ -132,12 +137,13 @@ class UrlControllerTest {
     @Test
     void getOriginalUrl_ShouldThrowIfShortUrlNotExist() throws Exception {
         String shortUrl = "fkt8y";
+        String fullUrlShort = this.urlDomain + shortUrl;
         StandardException standardException = new StandardException(Instant.now(), 404, "entity not found",
                 "url not found", "/url/unshortener");
-        when(this.urlService.findUrl(shortUrl)).thenThrow(new EntityNotFoundException("url not found"));
+        when(this.urlService.findUrl(anyString())).thenThrow(new EntityNotFoundException("url not found"));
 
         ResultMatcher resultMatcher = content().json(mapper.writeValueAsString(standardException));
-        mockMvc.perform(get("/url/unshortener").param("shortUrl", shortUrl))
+        mockMvc.perform(get("/url/unshortener").param("shortUrl", fullUrlShort))
                 .andExpect(status().isNotFound())
                 .andExpect(resultMatcher)
                 .andReturn();
@@ -151,12 +157,98 @@ class UrlControllerTest {
         LocalDateTime limitDate = now.plusDays(limitDays);
         String fullUrlShort = this.urlDomain + shortUrl;
         UrlResponseDto responseDto = new UrlResponseDto(fullUrlShort, longUrl, limitDate);
-        when(this.urlService.findUrl(shortUrl)).thenReturn(responseDto);
+        when(this.urlService.findUrl(anyString())).thenReturn(responseDto);
 
         ResultMatcher resultMatcher = content().json(mapper.writeValueAsString(responseDto));
         mockMvc.perform(get("/url/unshortener").param("shortUrl", shortUrl))
                 .andExpect(status().isOk())
                 .andExpect(resultMatcher)
+                .andReturn();
+    }
+
+    @Test
+    void report_ShouldReturnStatus400IfShortUrlisBlank() throws Exception {
+        ReportMessageDto data = new ReportMessageDto("", "email is malicious");
+        StandardException standardException = new StandardException(Instant.now(), 400, "method argument not valid",
+                "[shortUrl: 'must not be blank']", "/url/report");
+        doThrow(new EntityNotFoundException("url not found")).when(emailService).sendEmail(anyString(), anyString());
+
+        ResultMatcher resultMatcher = content().json(mapper.writeValueAsString(standardException));
+        mockMvc.perform(post("/url/report")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsBytes(data)))
+                .andExpect(status().isBadRequest())
+                .andExpect(resultMatcher)
+                .andReturn();
+    }
+
+    @Test
+    void report_ShouldReturnStatus400IfMessageisBlank() throws Exception {
+        String shortUrl = "fkt8y";
+        String fullUrlShort = this.urlDomain + shortUrl;
+        ReportMessageDto data = new ReportMessageDto(fullUrlShort, "");
+        StandardException standardException = new StandardException(Instant.now(), 400, "method argument not valid",
+                "[message: 'must not be blank']", "/url/report");
+        doThrow(new EntityNotFoundException("url not found")).when(emailService).sendEmail(anyString(), anyString());
+
+        ResultMatcher resultMatcher = content().json(mapper.writeValueAsString(standardException));
+        mockMvc.perform(post("/url/report")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsBytes(data)))
+                .andExpect(status().isBadRequest())
+                .andExpect(resultMatcher)
+                .andReturn();
+    }
+
+    @Test
+    void report_ShouldReturnStatus404IfUrlNotFound() throws Exception {
+        String shortUrl = "fkt8y";
+        String fullUrlShort = this.urlDomain + shortUrl;
+        ReportMessageDto data = new ReportMessageDto(fullUrlShort, "email is malicious");
+        StandardException standardException = new StandardException(Instant.now(), 404, "entity not found",
+                "url not found", "/url/report");
+        doThrow(new EntityNotFoundException("url not found")).when(emailService).sendEmail(anyString(), anyString());
+
+        ResultMatcher resultMatcher = content().json(mapper.writeValueAsString(standardException));
+        mockMvc.perform(post("/url/report")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsBytes(data)))
+                .andExpect(status().isNotFound())
+                .andExpect(resultMatcher)
+                .andReturn();
+    }
+
+    @Test
+    void report_ShouldReturnStatus400ifEmailSendFail() throws Exception {
+        String shortUrl = "fkt8y";
+        String fullUrlShort = this.urlDomain + shortUrl;
+        ReportMessageDto data = new ReportMessageDto(fullUrlShort, "email is malicious");
+        StandardException standardException = new StandardException(Instant.now(), 400, "send email fail",
+                "fail on send email", "/url/report");
+        doThrow(new FailedSendMailException("fail on send email")).when(emailService).sendEmail(anyString(),
+                anyString());
+
+        ResultMatcher resultMatcher = content().json(mapper.writeValueAsString(standardException));
+        mockMvc.perform(post("/url/report")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsBytes(data)))
+                .andExpect(status().isBadRequest())
+                .andExpect(resultMatcher)
+                .andReturn();
+    }
+
+    @Test
+    void report_ShouldReturnStatus200ifEmailSent() throws Exception {
+        String shortUrl = "fkt8y";
+        String fullUrlShort = this.urlDomain + shortUrl;
+        ReportMessageDto data = new ReportMessageDto(fullUrlShort, "email is malicious");
+        doNothing().when(emailService).sendEmail(anyString(), anyString());
+
+        mockMvc.perform(post("/url/report")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsBytes(data)))
+                .andExpect(status().isOk())
+                .andExpect(content().string("email sent"))
                 .andReturn();
     }
 
