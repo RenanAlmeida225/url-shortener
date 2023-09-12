@@ -1,15 +1,16 @@
 package com.urlshortener.services.impl;
 
+import java.time.LocalDateTime;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import com.urlshortener.Repositories.UrlRepository;
 import com.urlshortener.dtos.UrlResponseDto;
 import com.urlshortener.entities.Url;
 import com.urlshortener.exceptions.EntityNotFoundException;
 import com.urlshortener.services.UrlService;
 import com.urlshortener.utils.RandomCharacters;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 
 @Service
 public class UrlServiceImpl implements UrlService {
@@ -35,7 +36,9 @@ public class UrlServiceImpl implements UrlService {
 
     @Override
     public UrlResponseDto findUrl(String shortUrl) {
-        Url url = this.urlRepository.findByShortUrl(shortUrl).orElseThrow(() -> new EntityNotFoundException("url not found"));
-        return new UrlResponseDto(this.urlDomain + shortUrl, url.getLongUrl(), url.getLimitDate());
+        String shorted = shortUrl.contains(this.urlDomain) ? shortUrl.split(this.urlDomain)[1] : shortUrl;
+        Url url = this.urlRepository.findByShortUrl(shorted)
+                .orElseThrow(() -> new EntityNotFoundException("url not found"));
+        return new UrlResponseDto(this.urlDomain + shorted, url.getLongUrl(), url.getLimitDate());
     }
 }
